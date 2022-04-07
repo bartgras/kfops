@@ -3,9 +3,8 @@ from kfp.onprem import use_k8s_secret
 from kubernetes.client.models import V1EnvVar
 
 def materialize_model(model):
-    # TODO: Change URL to component pointing at file in kfops repo
     materialize_model_op = kfp.components.load_component_from_url(
-        'https://gist.githubusercontent.com/bartgras/203f1329dad7a8d83a5b04371c5a4fed/raw/b1c6f668f0b880f8202d3f6abde047b6714295b0/component.yaml')
+        'https://raw.githubusercontent.com/bartgras/kfops/18c4c48af714fde8dd8ee324f49f757e05a9fb6d/components/materialize_model_component.yaml')
 
     task = materialize_model_op(model=model)
 
