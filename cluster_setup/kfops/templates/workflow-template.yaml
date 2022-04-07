@@ -1,0 +1,122 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: run-workflow-template
+  namespace: {{ .Release.Namespace | default "kfops" }}
+  labels:
+    {{- include "labels" . | nindent 4 }}
+    {{- include "additionalLabels" . | nindent 4 }}
+  {{- include "annotations" . | nindent 2 }}
+spec:
+  volumeClaimTemplates:
+    - metadata:
+        name: shared-volume
+      spec:
+        accessModes: ['ReadWriteOnce']
+        resources:
+          requests:
+            storage: 100Mi
+  volumes:     
+    - name: ml-pipeline-token
+      projected:
+        sources:
+          - serviceAccountToken:
+              path: token
+              expirationSeconds: 7200
+              audience: pipelines.kubeflow.org        
+  entrypoint: process-workflow
+  onExit: process-failure
+  arguments:
+    parameters:
+    - name: pr-comment
+    - name: pr-number
+    - name: repo-owner
+    - name: repo-name
+  templates:
+  # WORKFLOW DAG
+  - name: process-workflow
+    dag:
+      tasks:
+      - name: handle-command
+        template: handle-command
+        arguments:
+          parameters:
+          - name: pr-comment
+            value: "{{`{{workflow.parameters.pr-comment}}`}}"
+          - name: pr-number
+            value: "{{`{{workflow.parameters.pr-number}}`}}"
+          - name: repo-owner
+            value: "{{`{{workflow.parameters.repo-owner}}`}}"
+          - name: repo-name
+            value: "{{`{{workflow.parameters.repo-name}}`}}"      
+  # WORKFLOW TASKS
+  - name: handle-command
+    inputs:
+      parameters:
+      - name: pr-comment
+      - name: pr-number
+      - name: repo-owner
+      - name: repo-name
+    script:
+      image: {{ .Values.image }}
+      imagePullPolicy: Always
+      volumeMounts:
+        - name: shared-volume
+          mountPath: /volume
+        - name: ml-pipeline-token
+          mountPath: /var/run/secrets/kubeflow/pipelines
+          readOnly: true
+        {{- include "kfops.devVolumes" . | nindent 8 }}
+      workingDir: /volume            
+      command: [sh]
+      source: |
+        # TODO: Refactor `git clone` command to work with other SCMs
+        echo "ENV: $RUN_ENV" 
+        if [ "$RUN_ENV" != 'development' ]; then
+          echo "Running in production"
+          git clone --depth 1 --single-branch https://$GITHUB_PAT_USERNAME:$GITHUB_TOKEN@github.com/{{`{{inputs.parameters.repo-owner}}`}}/{{`{{inputs.parameters.repo-name}}`}} /volume/repo
+          cd /volume/repo
+          git fetch origin pull/{{`{{inputs.parameters.pr-number}}`}}/head:pull_{{`{{inputs.parameters.pr-number}}`}} && git checkout pull_{{`{{inputs.parameters.pr-number}}`}}
+        fi
+
+        export PR_NUMBER={{`{{inputs.parameters.pr-number}}`}}
+
+        cd /package/ && pip install -e .
+        cd /volume/repo && python -m kfops.repo_exec '{{`{{inputs.parameters.pr-comment}}`}}'
+      env:
+      {{- include "workflow.Envs" . | nindent 6 }}
+  #WORKFLOW FAILURE REPORTING
+  - name: process-failure
+    steps:
+    - - name: process-failure-report
+        template: process-failure-step  
+        when: "{{`{{workflow.status}}`}} != Succeeded"
+  - name: process-failure-step
+    script:
+      image: "bitnami/kubectl:1.17.17"
+      command: [sh]
+      source: |
+        echo 'FAILURES: {{`{{workflow.failures}}`}}'
+        echo "" > /tmp/failure_log
+        echo "<h3>Workflow failure</h3>" >> /tmp/failure_log
+
+        CURRENT_NAMESPACE=`cat /var/run/secrets/kubernetes.io/serviceaccount/namespace`
+
+        echo {{`{{workflow.failures}}`}} | jq -r '.[] | select ( .templateName != "process-workflow" ) | [.podName, .templateName] | @tsv' | \
+        while read -r pod template; do 
+            echo "Error in workflow step: <code>$template</code>.<br/>Logs (last 20 lines) from pod <code>$pod</code>:<pre>" >> /tmp/failure_log
+            kubectl logs $pod -c main -n $CURRENT_NAMESPACE --tail=20 >> /tmp/failure_log
+            echo "</pre>" >> /tmp/failure_log
+        done
+
+        body_msg=`cat /tmp/failure_log | jq -aRs .`
+
+        # TODO: Refactor error message posting to work with different SCMs
+        curl \
+          -X POST \
+          -H "Accept: application/vnd.github.v3.html+json" \
+          -H "Authorization: token $GITHUB_TOKEN" \
+          -d '{"body":'"$body_msg"'}' \
+          https://api.github.com/repos/{{`{{workflow.parameters.repo-owner}}`}}/{{`{{workflow.parameters.repo-name}}`}}/issues/{{`{{workflow.parameters.pr-number}}`}}/comments
+      env:
+      {{- include "workflow.Envs" . | nindent 6 }}

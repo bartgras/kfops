@@ -1,0 +1,17 @@
+{{if eq .Values.environment "production" }}
+apiVersion: argoproj.io/v1alpha1
+kind: EventSource
+metadata:
+  name: webhook
+  namespace: {{ .Release.Namespace | default "kfops" }}
+  labels:
+    {{- include "labels" . | nindent 4 }}
+    {{- include "additionalLabels" . | nindent 4 }}
+  {{- include "annotations" . | nindent 2 }}    
+spec:
+  service:
+    ports:
+      - port: 12000
+        targetPort: 12000
+  {{- include "eventSource.scm" . | nindent 2 }}
+{{ end }}

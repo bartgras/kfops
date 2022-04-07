@@ -1,0 +1,45 @@
+name: Materialize model
+description: |-
+  Save file (trained model) to minio.
+  File will be saved in minio://<model_bucket_name>/<pipeline_run_id>/ 
+  where pipeline_run_id is ID of the current pipeline run.
+
+  Args:
+    model: Path where the model was saved in previous pipeline step
+    model_bucket_name: (Optional) Bucket name where model will be saved
+  
+inputs:
+- {name: model, type: TrainedModelBinary}
+- {name: model_bucket_name, type: String, optional: true}
+implementation:
+  container:
+    image: minio/mc:latest
+    command:
+    - sh
+    - -c
+    - |
+      MODEL_PATH=$0
+      MODEL_BUCKET_NAME=$1
+
+      if [ -z "$MODEL_BUCKET_NAME" ]; then 
+        MODEL_BUCKET_NAME="trained-models"
+      fi
+
+      if [ -z "$RUN_ID" ]; then 
+        echo "Could not get RUN_ID. Make sure you initiated it according to documentation."
+        exit 1
+      fi
+
+      if [ -z "$MINIO_ACCESS_KEY" ] || [ -z "$MINIO_SECRET_KEY" ]; then 
+        echo "Could not find MINIO_ACCESS_KEY and/or MINIO_SECRET_KEY. Make sure you initiated it according to documentation."
+        exit 1
+      fi
+
+      mc alias set  minio http://minio-service.kubeflow.svc.cluster.local:9000 $MINIO_ACCESS_KEY $MINIO_SECRET_KEY
+      mc mb minio/$MODEL_BUCKET_NAME --ignore-existing
+      
+      mc cp --recursive "$MODEL_PATH/*" minio/$MODEL_BUCKET_NAME/$RUN_ID/
+      
+    - {inputPath: model}
+    - {inputValue: model_bucket_name}
+

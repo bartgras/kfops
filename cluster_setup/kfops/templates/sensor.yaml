@@ -1,0 +1,54 @@
+{{if eq .Values.environment "production" }}
+apiVersion: argoproj.io/v1alpha1
+kind: Sensor
+metadata:
+  name: webhook
+  namespace: {{ .Release.Namespace  | default "kfops" }}
+  labels:
+    {{- include "labels" . | nindent 4 }}
+    {{- include "additionalLabels" . | nindent 4 }}
+  {{- include "annotations" . | nindent 2 }}    
+spec:
+  template:
+    serviceAccountName: argo-pipeline-runner-sa #NOTICE
+  dependencies:
+    - name: kfops-dep
+      eventSourceName: webhook
+      eventName: kfops
+      filters:
+        data:
+        - type: string
+          value: 
+          - "^/build_run( |$)"  
+          - "^/build( |$)"
+          - "^/run( |$)"
+          - "^/deploy( |$)"
+          - "^/staging_deploy( |$)"
+          {{- include "sensor.filterPath" . | nindent 10}}
+  triggers:
+    - template:
+        name: webhook-workflow-trigger-1
+        k8s:
+          group: argoproj.io
+          version: v1alpha1
+          resource: workflows
+          operation: create
+          source:
+            resource:
+              apiVersion: argoproj.io/v1alpha1
+              kind: Workflow
+              metadata:
+                generateName: kfops-workflow-run-
+              spec:
+                workflowTemplateRef:
+                  name: run-workflow-template
+                arguments:
+                  parameters: 
+                    - name: pr-comment
+                    - name: pr-number
+                    - name: repo-owner
+                    - name: repo-name
+                serviceAccountName: argo-pipeline-runner-sa #NOTICE
+          parameters:
+          {{- include "sensor.parameters" . | nindent 10 }}
+{{ end }}

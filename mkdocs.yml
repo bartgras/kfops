@@ -1,0 +1,22 @@
+site_name: Kfops
+nav:
+    - 'Installation': 'install.md'
+    - 'Commands reference': 'commands.md'
+    - 'Kfops and MLOps livecycle': 'mlops_lifecycle.md'
+    - 'Design goals and features': 'features.md'
+    - 'User Guide':
+        - 'Introduction': 'user/intro.md'
+        - 'Main config file': 'user/config.md'
+        - 'Pipeline function': 'user/pipeline_function.md'
+        - 'Deployment function': 'user/deployment_function.md'
+    - 'Administrator Guide': 
+        - 'Introduction': 'admin/intro.md'
+        - 'In-cluster setup': 'admin/cluster_setup.md'
+        - 'Helm chart values': 'admin/chart_values.md'
+        - 'Configure deployment': 'admin/deployment.md'
+        - 'Configure images builder': 'admin/image_builder.md'
+        - 'Example kaniko setup': 'admin/example_kaniko_setup.md'
+    - 'Developer Guide': 
+       - 'Development environment setup': 'development.md'
+theme:
+    name: readthedocs

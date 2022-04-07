@@ -1,0 +1,25 @@
+apiVersion: skaffold/v2beta5
+kind: Config
+metadata:
+  name: kfops-skaffold
+build:
+  local:
+    push: true
+    useBuildkit: true
+  artifacts:
+  - image: k3d-kfc-registry:5000/kfops
+    context: .
+deploy:
+  helm:
+    flags:
+      upgrade:
+        - --install
+    releases:
+      - name: kfops
+        namespace: kfops
+        chartPath: ./cluster_setup/kfops
+        skipBuildDependencies: true
+        artifactOverrides: 
+          image: k3d-kfc-registry:5000/kfops
+        valuesFiles:
+        - ./cluster_setup/values_dev.yaml

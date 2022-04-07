@@ -1,0 +1,106 @@
+# Repository related settings
+repository:
+
+  # The owner of your pipeline/model repository. If using Github it's the https://github.com/OWNER/
+  owner: my-repo-username
+
+  # Repository name
+  name: my-model-repo-name
+
+# Kubeflow Pipeline related settings
+pipeline:
+
+  # Kubeflow pipeline name
+  name: Sklearn Iris
+
+  # Optional. Description for your pipeline
+  description: Example pipeline to show how to configure your project
+
+  # Kubernetes namespace (Kubeflow profile) in which pipeline will be executed.
+  # Note: It assumes you have access to this profile. Otherwise you won't be able to see results in Kubeflow UI.
+  # For details refer to https://www.kubeflow.org/docs/components/multi-tenancy/getting-started/
+  namespace: my-user-profile-name
+
+  # Kubeflow Experiment name this pipeline will be stored under.
+  experiment_name: My amazing experiment
+
+  # Path to file where your pipeline code is located.
+  # Note: Path is relative to root folder of your repository.
+  pipeline_path: my_pipeline/pipeline.py
+
+  # Optional. Name of the pipeline function.
+  # Required only if multiple pipeline functions were defined in the file.
+  pipeline_function_name: my_pipeline_func
+
+  # Optional. Allows to choose Kubeflow Pipelines execution mode.
+  # Valid selections are: V1_LEGACY, V2_COMPATIBLE, V2_ENGINE
+  # If not defined V2_COMPATIBLE is used
+  # Notice: Currently component in function kfops.model.materialize_model only supports V2_COMPATIBLE
+  pipeline_execution_mode: V2_COMPATIBLE
+
+  # Pipeline run parameters.
+  # Optional if pipeline doesn't have any required parameters.
+  pipeline_args:
+    parameter_name: 'parameter_value' 
+
+# Deployment related settings
+deployment:
+
+  # When model is deployed, it will use this inference service name.
+  inference_service_name: sklearn-iris
+
+  # Path to file where your inference service function has been defined.
+  # Note: Path is relative to root folder of your repository
+  inference_service_function_path: config_files/deployment.py
+
+  # Optional. Path to the location where inference test sample has been located.
+  # Currently only supports JSON file format.
+  # Sample will be used to check if newly deployed model responds with HTTP status 200.
+  # Tested model is deployed as canary with 0% traffic. In case of non-200 status, it will stop deployment process.
+  pre_deployment_test_sample_input_path: test_deployment/input.json
+
+  # Kubernetes namespace into which production models will be deployed to.
+  # Notice: namespace defined here has to already exist in cluster.
+  production: 
+    namespace: prod
+
+  # Optional. Similar to production namespace above.
+  # Kubernetes namespace into which production models will be deployed to.
+  staging:
+    namespace: staging
+
+# Optional. Required only if your Kubeflow Pipelines use custom images and they are 
+# being built in the cluster as part of /build command
+image_builder:
+
+  # Registry name where your built image will be pushed. Examples:
+  # * For Docker hub use your Docker hub profile name.
+  # * For ECR use name in format aws_account_id.dkr.ecr.region.amazonaws.com
+  container_registry_uri: my-registry
+
+  # Optional flag required during development. Allows to push image into in-cluster insecure registry. 
+  insecure: true
+
+  # Specify images to be built during /build (or /build_run) step.
+  # Refer to section "Container images builder" in Readme for details.
+  images:
+    - name: my_image_name
+      dockerfile_folder_path: containers/my_image_name
+      other_folders_path:
+        - containers/lib
+
+  # Optional. If not defined, default MinIO preinstalled with 
+  # Kubeflow is used as a build context for Kaniko.
+  # More details about Kaniko contexts: https://github.com/GoogleContainerTools/kaniko#kaniko-build-contexts
+  minio:
+
+    # Optional. By default context files are copied into MinIO bucket "image-build-artifacts" 
+    # but can be overwritten using:
+    context_files_bucket_name: different-bucket-name
+
+    # Optional. By the default MinIO credentials are read from the cluster (minio-service.kubeflow.svc.cluster.local)
+    # You can override these settings with options below:
+    credentials:
+      endpoint: YOUR_ENDPOINT (e.g. my-minio-service.my-namespace.svc.cluster.local)
+      access_key: YOUR_ACCESS_KEY
+      secret_key: YOUR_SECRET_KEY

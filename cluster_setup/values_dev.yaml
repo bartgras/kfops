@@ -1,0 +1,16 @@
+# Chart values override required during development
+
+kubeflow_url: 'https://dummy.com'
+
+webhookDomain: 'https://dummy.com'
+
+# Will be overwritten by Skaffold
+image: 'dummy'
+
+environment: development
+
+# Parameters required for development. Do not modify.
+development:
+  developmentVolumeMount:
+    - name: project-folder
+      mountPath: '/volume/repo/'

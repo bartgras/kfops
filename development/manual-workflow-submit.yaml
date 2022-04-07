@@ -1,0 +1,36 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: kfops-workflow-
+  namespace: kfops
+spec:
+  serviceAccountName: argo-pipeline-runner-sa
+  volumeClaimTemplates:
+    - metadata:
+        name: shared-volume
+      spec:
+        accessModes: ['ReadWriteOnce']
+        resources:
+          requests:
+            storage: 100Mi
+  volumes:
+    - name: ml-pipeline-token
+      projected:
+        sources:
+          - serviceAccountToken:
+              path: token
+              expirationSeconds: 7200
+              audience: pipelines.kubeflow.org
+    # Required host mapping to load "sample project" with required config files
+    - name: project-folder
+      hostPath:
+        path: '/project'                
+  # onExit: process-failure
+  entrypoint: process-workflow-template
+  templates:
+  - name: process-workflow-template
+    steps:
+      - - name: call-template
+          templateRef:
+            name: run-workflow-template
+            template: process-workflow

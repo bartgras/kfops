@@ -1,0 +1,116 @@
+type: map
+mapping:
+  repository:
+    type: map
+    required: true
+    mapping:
+      owner:
+        type: str
+        required: true
+      name:
+        type: str
+        required: true
+  pipeline:
+    type: map
+    required: true
+    mapping:
+      name:
+        type: str
+        required: true    
+      description:
+        type: str
+        required: false
+      namespace:
+        type: str
+        required: true
+      experiment_name:
+        type: str
+        required: true
+      pipeline_path:
+        type: str
+        required: true
+      pipeline_function_name:
+        type: str
+        required: false
+      pipeline_execution_mode:
+        type: str
+        required: false        
+      pipeline_args:
+        type: map
+        required: false
+        allowempty: true
+  deployment:
+    type: map
+    required: false
+    mapping:
+      inference_service_name:
+        type: str
+        required: true
+      inference_service_function_path:
+        type: str
+        required: true
+      production:
+        type: map
+        required: true
+        mapping:
+          namespace:            
+            type: str
+            required: true
+      staging:
+        type: map
+        required: false
+        mapping:
+          namespace:            
+            type: str
+            required: true
+      pre_deployment_test_sample_input_path:
+        type: str
+        required: false
+  image_builder:
+    type: map
+    required: False
+    mapping:
+      container_registry_uri:
+        type: str
+        required: True
+      insecure:
+        type: bool
+        required: False        
+      images:
+        type: seq
+        required: True
+        sequence:
+          - type: map
+            mapping:
+              name:
+                type: str
+                required: True
+              dockerfile_folder_path:
+                type: str
+                required: True  
+              other_folders_path:
+                type: seq
+                required: False
+                sequence:
+                  - type: str
+                    required: true
+      minio:
+        type: map
+        required: False
+        mapping:
+          context_files_bucket_name:
+            type: str
+            required: False
+          credentials:
+            type: map
+            required: False
+            mapping:
+              endpoint:
+                type: str
+                required: True
+              access_key:
+                type: str
+                required: True
+              secret_key:
+                type: str
+                required: True                

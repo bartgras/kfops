@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  #Note: Do not define "namespace". It will be applied automatically by Kfops.
+  generateName: cluster-image-builder-
+  labels:
+    name: cluster-image-builder
+spec:
+  # Kfops will automatically inject initContainers that copy context files 
+  # from Minio into the main Pod
+  # initContainers: {}
+  containers:  
+  - name: cluster-image-builder
+    image: gcr.io/kaniko-project/executor:latest
+    # Do not specify container "args" because they will be overwritten by Kfops
+    # args: []
+    # Kfops will automatically inject mounts that share data between your container and initContainer    
+    #volumeMounts: {}
+  restartPolicy: Never
+  # Kfops will automatically inject volumes that share data between your container and initContainer    
+  #volumes: {}
+  

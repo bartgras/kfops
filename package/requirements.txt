@@ -1,0 +1,9 @@
+kubernetes>=12.0.0
+minio==6.0.2
+PyYAML==5.4.1
+pykwalify==1.8.0
+munch==2.3.2
+docopt==0.6.2
+kfp==1.7.0
+kserve==0.7.0
+ghapi==0.1.15

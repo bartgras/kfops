@@ -1,0 +1,30 @@
+{{if eq .Values.environment "production" }}
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: argo-authn-filter
+  namespace: istio-system
+  labels:
+    {{- include "labels" . | nindent 4 }}
+    {{- include "additionalLabels" . | nindent 4 }}
+  {{- include "annotations" . | nindent 2 }}    
+spec:
+  workloadSelector:
+    labels:
+      istio: ingressgateway
+  configPatches:
+    - applyTo: HTTP_ROUTE
+      match:
+       routeConfiguration:
+          vhost:
+            route:
+              name: argo-server-route 
+      patch:
+        operation: MERGE 
+        value:
+          name: envoy.ext_authz_disabled
+          typed_per_filter_config:
+            envoy.ext_authz:
+              "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute
+              disabled: true
+{{ end }}

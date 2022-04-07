@@ -1,0 +1,45 @@
+# URL where your Kubeflow is installed
+kubeflow_url: 
+
+# Webhook domain - SCM (Source Code Management) system will send requests to your 
+# webhookDomain's eventEndpoint. 
+# e.g. if webhookDomain is https://example.com/, and eventEndpoint is /kfops
+# then requests are sent to https://example.com/kfops
+webhookDomain: '' 
+
+# Endpoint which will be called by your SCM webhook (e.g. https://<your-domain>/kfops )
+# If not set - default is "/kfops"
+eventEndpoint: '/kfops'
+
+scm: {}
+  # Github specific settings
+  # github:
+    # Settings required for Github event webhooks and listener
+    # githubRepoOwner: '<GITHUB REPO OWNER>'
+
+    # Username who created Github's "Personal access token"
+    # githubPatUsername: '<GITHUB PAT>'
+
+# List of reposities kfops should register webhook and listen to 
+# In format (e.g. for Github repository): http://github.com/<repo-owner>/<repo-name>
+repositoriesNames: []
+  # - name: '<REPO NAME>'
+  #- name: '<ANOTHER REPO NAME>'
+
+# Container image. Image tag should match the package version.
+image: bartgras/kfops:0.1.0
+
+# Parameter required for development. Do not modify.
+environment: production
+
+# Parameters required for development. Do not modify.
+development:
+  developmentVolumeMount: []
+
+# Optional
+# labels:
+#   my: label
+
+# Optional
+# annotations:
+#   my: annotation

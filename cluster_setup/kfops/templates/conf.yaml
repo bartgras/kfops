@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kfops-vars
+  namespace: {{ .Release.Namespace | default "kfops" }}
+  labels:
+    {{- include "labels" . | nindent 4 }}
+    {{- include "additionalLabels" . | nindent 4 }}
+  {{- include "annotations" . | nindent 2 }}    
+data:
+  {{- include "configMap.values" . | nindent 2 }}

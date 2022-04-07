@@ -1,0 +1,28 @@
+{{if eq .Values.environment "production" }}
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: argo-listnener
+  namespace: {{ .Release.Namespace | default "kfops" }}
+  labels:
+    {{- include "labels" . | nindent 4 }}
+    {{- include "additionalLabels" . | nindent 4 }}
+  {{- include "annotations" . | nindent 2 }}    
+spec:
+  hosts:
+  - "*" 
+  gateways:
+  - kubeflow/kubeflow-gateway # Notice: Uses kubeflow-gateway, assumes gateway already has proper TLS
+  http:
+  - name: argo-server-route 
+    match:
+    - uri: 
+        prefix: {{ .Values.eventEndpoint | default "/kfops" }} 
+    rewrite:
+      uri: {{ .Values.eventEndpoint | default "/kfops" }}
+    route:
+    - destination:
+        host: webhook-eventsource-svc
+        port:
+          number: 12000
+{{ end }}

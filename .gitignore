@@ -1,0 +1,22 @@
+# virtualenv
+.venv
+
+# IDE etc.
+.vscode
+.idea/
+.ijwb/
+*.iml
+.mypy_cache
+.pytest_cache
+
+# Helm
+cluster_setup/kfops/charts/*
+cluster_setup/kfops/Chart.lock
+cluster_setup/values_override.yaml
+
+.ipynb_checkpoints
+*.pyc
+__pycache__
+*.egg-info
+.DS_Store
+\!experiments
