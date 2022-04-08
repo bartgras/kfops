@@ -6,6 +6,8 @@ It simplifies and standardizes Kubeflow-based ML model lifecycle by enforcing
 "single repository per  ML model" rule and explicit way how it should be configured.
 Commands like `/build`, `/build_run` and `/deploy` are executed in the context of the Pull Request.
 
+Read the high-level introductory [article](https://medium.com/@bartgras/simplified-mlops-for-kubeflow-with-kfops-785e36a6c5f4).
+
 For more details, visit [documentation](https://kfops.readthedocs.io/en/latest/)
 
 # Installation

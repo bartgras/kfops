@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Read the high-level introductory article on towardsdatascience.com (# TODO: Fill in with link)
+Read the high-level introductory [article](https://medium.com/@bartgras/simplified-mlops-for-kubeflow-with-kfops-785e36a6c5f4).
 
 ### Getting started & article tldr;
 
